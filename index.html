@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Cari Kata</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #ffa726 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 1400px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .game-title {
+            color: #4a5568;
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            min-width: 120px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .game-options {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .select-box {
+            padding: 8px 15px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            background-color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20fill%3D%22%234a5568%22%20d%3D%22M9.293%2012.95l.707.707L15.657%208l-1.414-1.414L10%2010.828%205.757%206.586%204.343%208z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .select-box:hover {
+            border-color: #667eea;
+        }
+
+        .select-box:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+        }
+
+        .game-content {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+
+        .grid-container {
+            flex: 2;
+        }
+
+        .word-grid {
+            display: grid;
+            grid-template-columns: repeat(16, 1fr);
+            gap: 3px;
+            margin-bottom: 20px;
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 100%;
+        }
+
+        .grid-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+            min-height: 35px;
+        }
+
+        .grid-cell:hover {
+            background: #f0fff4;
+            border-color: #68d391;
+            transform: scale(1.05);
+        }
+
+        .grid-cell.selected {
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            color: white;
+            border-color: #2f855a;
+            transform: scale(1.1);
+        }
+
+        .grid-cell.found {
+            background: linear-gradient(45deg, #4299e1, #3182ce);
+            color: white;
+            border-color: #2c5282;
+            animation: pulse 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .grid-cell.missed {
+            background: linear-gradient(45deg, #e53e3e, #c53030);
+            color: white;
+            border-color: #9b2c2c;
+            animation: fadeIn 0.8s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .word-list-container {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .word-list-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .word-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .word-item {
+            padding: 10px;
+            background: #f7fafc;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .word-item.found {
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            color: white;
+            text-decoration: line-through;
+            border-color: #2f855a;
+            transform: scale(0.98);
+        }
+
+        .word-item.missed {
+            background: linear-gradient(45deg, #e53e3e, #c53030);
+            color: white;
+            border-color: #9b2c2c;
+            animation: fadeIn 0.8s ease;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #ed8936, #dd6b20);
+            color: white;
+            box-shadow: 0 5px 15px rgba(237, 137, 54, 0.3);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(237, 137, 54, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #e53e3e, #c53030);
+            color: white;
+            box-shadow: 0 5px 15px rgba(229, 62, 62, 0.3);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(229, 62, 62, 0.4);
+        }
+
+        .victory-message {
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            color: white;
+            border-radius: 15px;
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        .gameover-message {
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(45deg, #e53e3e, #c53030);
+            color: white;
+            border-radius: 15px;
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        .gameover-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .victory-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .player-input-group {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .player-input-group label {
+            font-size: 1.1rem;
+            color: #4a5568;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .player-input-group input[type="text"] {
+            padding: 8px 15px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            font-size: 1rem;
+            width: 200px;
+            max-width: 80%;
+            transition: all 0.3s ease;
+        }
+
+        .player-input-group input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+        }
+
+        .leaderboard-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .leaderboard-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4a5568;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .difficulty-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            padding: 8px 16px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            color: #4a5568;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .tab-button:hover {
+            border-color: #667eea;
+            background: #f7fafc;
+        }
+
+        .tab-button.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .leaderboard-content {
+            min-height: 200px;
+        }
+
+        .leaderboard-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            background: #f0f4f8;
+            border-radius: 10px;
+            font-size: 1rem;
+            color: #2d3748;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .leaderboard-item:nth-child(odd) {
+            background: #e2e8f0;
+        }
+
+        .leaderboard-item .rank {
+            font-weight: bold;
+            min-width: 25px;
+        }
+
+        .leaderboard-item .player-info {
+            flex: 1;
+            text-align: left;
+            margin-left: 10px;
+        }
+
+        .leaderboard-item .time {
+            color: #4a5568;
+            font-weight: bold;
+        }
+
+        .leaderboard-item .details {
+            font-size: 0.8rem;
+            color: #718096;
+            margin-top: 2px;
+        }
+
+        .dashboard-content {
+            text-align: center;
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .leaderboard-actions {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .game-content {
+                flex-direction: column;
+            }
+            
+            .word-grid {
+                grid-template-columns: repeat(14, 1fr);
+                gap: 2px;
+                padding: 15px;
+            }
+            
+            .grid-cell {
+                font-size: 0.9rem;
+                min-height: 30px;
+            }
+            
+            .word-list-container {
+                min-width: auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .word-grid {
+                grid-template-columns: repeat(12, 1fr);
+                gap: 1px;
+                padding: 10px;
+            }
+            
+            .grid-cell {
+                font-size: 0.8rem;
+                min-height: 25px;
+            }
+            
+            .game-title {
+                font-size: 2rem;
+            }
+
+            .game-stats {
+                flex-wrap: wrap;
+            }
+
+            .stat-card {
+                min-width: 100px;
+                padding: 12px;
+            }
+            
+            .leaderboard-container {
+                padding: 15px;
+            }
+            
+            .leaderboard-item {
+                font-size: 0.9rem;
+                padding: 10px 12px;
+                flex-direction: column;
+                align-items: flex-start;
+                text-align: left;
+            }
+
+            .leaderboard-item .player-info {
+                margin-left: 0;
+                margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="dashboard" class="game-container">
+        <div class="dashboard-content">
+            <h1 class="game-title">🔍 Game Cari Kata</h1>
+            
+            <div class="player-input-group">
+                <label for="playerName">Nama Pemain:</label>
+                <input type="text" id="playerName" placeholder="Masukkan nama Anda" maxlength="20">
+            </div>
+            
+            <div class="controls">
+                <button class="btn btn-primary" onclick="startGame()">🎮 Mulai Game</button>
+            </div>
+            
+            <div class="leaderboard-container">
+                <h3 class="leaderboard-title">🏆 Peringkat Waktu Tercepat</h3>
+                
+                <div class="difficulty-tabs">
+                    <button class="tab-button active" onclick="switchDifficultyTab('dashboard', 'Mudah')">🟢 Mudah</button>
+                    <button class="tab-button" onclick="switchDifficultyTab('dashboard', 'Sedang')">🟡 Sedang</button>
+                    <button class="tab-button" onclick="switchDifficultyTab('dashboard', 'Sulit')">🔴 Sulit</button>
+                </div>
+                
+                <div class="leaderboard-content">
+                    <ul class="leaderboard-list" id="leaderboardList">
+                        <!-- Leaderboard items will be inserted here by JavaScript -->
+                    </ul>
+                </div>
+                
+                <div class="leaderboard-actions">
+                    <button class="btn btn-danger" onclick="clearLeaderboard()">🗑️ Hapus Peringkat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="gamePage" class="game-container" style="display:none">
+        <div class="game-header">
+            <h1 class="game-title">🔍 Game Cari Kata</h1>
+            <div class="game-stats">
+                <div class="stat-card">
+                    <div class="stat-label">Kata Ditemukan</div>
+                    <div class="stat-value" id="wordsFound">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Kata</div>
+                    <div class="stat-value" id="totalWords">6</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Waktu</div>
+                    <div class="stat-value" id="timer">00:00</div>
+                </div>
+            </div>
+
+            <div class="game-options">
+                <div class="option-group">
+                    <label for="categorySelect">Pilih Kategori:</label>
+                    <select id="categorySelect" class="select-box"></select>
+                </div>
+                <div class="option-group">
+                    <label for="difficultySelect">Pilih Kesulitan:</label>
+                    <select id="difficultySelect" class="select-box"></select>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-content">
+            <div class="grid-container">
+                <div class="word-grid" id="wordGrid"></div>
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="newGame()">🎮 Game Baru</button>
+                    <button class="btn btn-secondary" onclick="giveHint()">💡 Petunjuk</button>
+                    <button class="btn btn-secondary" onclick="showAllWords()" style="background: linear-gradient(45deg, #9333ea, #7c3aed);">👁️ Tampilkan Semua</button>
+                </div>
+            </div>
+
+            <div class="word-list-container">
+                <h3 class="word-list-title">📝 Cari Kata-Kata Ini:</h3>
+                <ul class="word-list" id="wordList"></ul>
+            </div>
+        </div>
+
+        <div class="victory-message" id="victoryMessage">
+            <div class="victory-title">🎉 Selamat!</div>
+            <div>Anda berhasil menemukan semua kata!</div>
+            <div id="finalTime"></div>
+            <button class="btn btn-primary" onclick="backToDashboard()" style="margin-top: 20px;">Kembali ke Dashboard</button>
+        </div>
+
+        <div class="gameover-message" id="gameOverMessage" style="display: none;">
+            <div class="gameover-title">⏰ Waktu Habis!</div>
+            <div>Kata yang terlewat: <span style="color: #ff6b6b; font-weight: bold;">🔴 Merah</span> | Kata overlap: <span style="color: #ffa726; font-weight: bold;">🟠 Orange</span></div>
+            <button class="btn btn-primary" onclick="backToDashboard()" style="margin-top: 20px;">Kembali ke Dashboard</button>
+        </div>
+
+        <div class="leaderboard-container">
+            <h3 class="leaderboard-title">🏆 Peringkat Waktu Tercepat</h3>
+            
+            <div class="difficulty-tabs">
+                <button class="tab-button active" onclick="switchDifficultyTab('game', 'Mudah')">🟢 Mudah</button>
+                <button class="tab-button" onclick="switchDifficultyTab('game', 'Sedang')">🟡 Sedang</button>
+                <button class="tab-button" onclick="switchDifficultyTab('game', 'Sulit')">🔴 Sulit</button>
+            </div>
+            
+            <div class="leaderboard-content">
+                <ul class="leaderboard-list" id="gameLeaderboardList">
+                    <!-- Leaderboard items will be inserted here by JavaScript -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Key untuk localStorage
+        const LEADERBOARD_KEY = 'wordSearchLeaderboard_v2';
+        
+        // State untuk tab yang aktif
+        let activeDifficultyTabs = {
+            dashboard: 'Mudah',
+            game: 'Mudah'
+        };
+
+        const gameData = {
+            "Pemrograman": {
+                "Mudah": {
+                    words: ['HTML', 'CSS', 'JAVA', 'C++', 'PHP', 'RUBY'],
+                    timeLimit: 600
+                },
+                "Sedang": {
+                    words: ['PYTHON', 'JAVASCRIPT', 'REACT', 'NODEJS', 'ANGULAR', 'VUE'],
+                    timeLimit: 420
+                },
+                "Sulit": {
+                    words: ['BOOTSTRAP', 'JQUERY', 'TYPESCRIPT', 'MYSQL', 'ALGORITHM', 'DATABASE', 'FRAMEWORK', 'API'],
+                    timeLimit: 300
+                }
+            },
+            "Hewan": {
+                "Mudah": {
+                    words: ['KUCING', 'ANJING', 'IKAN', 'BURUNG', 'AYAM', 'BEBEK'],
+                    timeLimit: 600
+                },
+                "Sedang": {
+                    words: ['GAJAH', 'SINGA', 'HARIMAU', 'BERUANG', 'SERIGALA', 'KANGURU'],
+                    timeLimit: 420
+                },
+                "Sulit": {
+                    words: ['KOMODO', 'ORNITHO', 'PLATYPUS', 'OKAPI', 'AXOLOTL', 'PANDA', 'KOALA', 'CHEETAH'],
+                    timeLimit: 300
+                }
+            },
+            "Buah": {
+                "Mudah": {
+                    words: ['APEL', 'JERUK', 'PISANG', 'MANGGA', 'PEPAYA', 'JAMBU', 'SALAK', 'RAMBUTAN', 'DUKU', 'NANAS', 'ANGGUR', 'SEMANGKA', 'MELON', 'KELAPA', 'ALPUKAT', 'TOMAT', 'TIMUN', 'BELIMBING', 'SIRSAK', 'KEDONDONG'],
+                    timeLimit: 600
+                },
+                "Sedang": {
+                    words: ['MANGGIS', 'DURIAN', 'CEMPEDAK', 'MATOA', 'GANDARIA', 'KWENI', 'SAWO', 'SUKUN', 'MARKISA', 'CEREMAI', 'KIWI', 'LECI', 'DELIMA', 'KURMA', 'ZAITUN', 'CRANBERRY', 'BLUEBERRY', 'BLACKBERRY', 'RASPBERRY', 'STRAWBERRY'],
+                    timeLimit: 420
+                },
+                "Sulit": {
+                    words: ['KEPUNDUNG', 'DURIAN', 'BISBUL', 'MARKISA', 'LEMON', 'KEMUNTING', 'KECRUTAN', 'NAGA', 'BACANG', 'BUNI', 'KUMQUAT', 'MULBERRY', 'GOOSEBERRY', 'LOGANBERRY', 'HUCKLEBERRY', 'CLOUDBERRY', 'RAMBAI', 'ACKEE', 'SOURSOP', 'CHERIMOYA', 'CHERRY', 'ELDERBERRY'],
+                    timeLimit: 300
+                }
+            },
+            "Kota": {
+                "Mudah": {
+                    words: ['GRESIK', 'SURABAYA', 'MALANG', 'BANGKALAN', 'LAMONGAN', 'TUBAN', 'CIREBON', 'CILEGON', 'CIPETE', 'BANTUL', 'SLEMAN', 'SURAKARTA', 'MAGELANG', 'MAGETAN', 'DEPOK', 'BOGOR', 'BANJAR', 'SUKABUMI', 'TANGERANG', 'BLITAR'],
+                    timeLimit: 600
+                },
+                "Sedang": {
+                    words: ['SAMPANG', 'MOJOKERTO', 'PANDEGLANG', 'JAKARTA', 'BEKASI', 'SERANG', 'BATAM', 'PRABUMULIH', 'SALATIGA', 'JAMBI', 'PALANGKARAYA', 'BONTANG', 'PARIAMAN', 'SIBOLGA', 'BINJAI', 'BANJARMASIN', 'SAMARINDA', 'PEKALONGAN', 'BATU', 'BIMA'],
+                    timeLimit: 420
+                },
+                "Sulit": {
+                    words: ['BANDA ACEH', 'TAPAKTUAN', 'ATAMBUA', 'LARANTUKA', 'SOPPENG', 'MATARAM', 'SAWAHLUNTO', 'SINGKAWANG', 'LANGSA', 'LHOKSEUMAWE', 'DUMAI', 'SOLOK', 'TOMOHON', 'TUAL', 'PALOPO', 'KOTAMOBAGU', 'BITUNG', 'TARAKAN', 'PAREPARE', 'PANGKALPINANG'],
+                    timeLimit: 300
+                }
+            }
+        };
+
+        // Fungsi untuk menyimpan leaderboard
+        function saveLeaderboard(leaderboard) {
+            try {
+                const dataToSave = JSON.stringify(leaderboard);
+                localStorage.setItem(LEADERBOARD_KEY, dataToSave);
+                console.log('✅ Leaderboard saved successfully:', leaderboard);
+                return true;
+            } catch (error) {
+                console.error('❌ Failed to save leaderboard:', error);
+                return false;
+            }
+        }
+
+        // Fungsi untuk memuat leaderboard
+        function loadLeaderboard() {
+            try {
+                const savedData = localStorage.getItem(LEADERBOARD_KEY);
+                if (savedData) {
+                    const leaderboard = JSON.parse(savedData);
+                    console.log('✅ Leaderboard loaded successfully:', leaderboard);
+                    return Array.isArray(leaderboard) ? leaderboard : [];
+                }
+                console.log('ℹ️ No saved leaderboard found, starting fresh');
+                return [];
+            } catch (error) {
+                console.error('❌ Failed to load leaderboard:', error);
+                return [];
+            }
+        }
+
+        // Fungsi untuk menghapus leaderboard
+        function clearLeaderboard() {
+            if (confirm('Apakah Anda yakin ingin menghapus semua data peringkat? Tindakan ini tidak dapat dibatalkan.')) {
+                try {
+                    localStorage.removeItem(LEADERBOARD_KEY);
+                    console.log('✅ Leaderboard cleared successfully');
+                    renderLeaderboard(); // Perbarui tampilan
+                    alert('Data peringkat telah dihapus!');
+                } catch (error) {
+                    console.error('❌ Failed to clear leaderboard:', error);
+                    alert('Gagal menghapus data peringkat.');
+                }
+            }
+        }
+
+        // Fungsi untuk menambah skor ke leaderboard
+        function addScore(playerName, timeTaken, category, difficulty) {
+            const score = {
+                id: Date.now() + Math.random(), // ID unik untuk setiap skor
+                name: playerName.trim() || "Pemain Anonim",
+                time: timeTaken,
+                category: category,
+                difficulty: difficulty,
+                date: new Date().toLocaleDateString('id-ID'),
+                timestamp: new Date().getTime()
+            };
+
+            let leaderboard = loadLeaderboard();
+            leaderboard.push(score);
+            
+            // Urutkan berdasarkan waktu (tercepat di atas)
+            leaderboard.sort((a, b) => a.time - b.time);
+
+            // Batasi jumlah entri di leaderboard (20 teratas)
+            leaderboard = leaderboard.slice(0, 20);
+
+            const success = saveLeaderboard(leaderboard);
+            if (success) {
+                console.log('✅ Score added successfully:', score);
+                renderLeaderboard(); // Perbarui tampilan
+            } else {
+                console.error('❌ Failed to add score');
+            }
+
+            return success;
+        }
+
+        // Fungsi untuk beralih tab kesulitan
+        function switchDifficultyTab(page, difficulty) {
+            // Update state aktif
+            activeDifficultyTabs[page] = difficulty;
+            
+            // Update tampilan tab
+            const container = page === 'dashboard' ? document.getElementById('dashboard') : document.getElementById('gamePage');
+            const tabButtons = container.querySelectorAll('.tab-button');
+            
+            tabButtons.forEach(button => {
+                button.classList.remove('active');
+                if (button.textContent.includes(difficulty)) {
+                    button.classList.add('active');
+                }
+            });
+            
+            // Render leaderboard sesuai kesulitan yang dipilih
+            const containerId = page === 'dashboard' ? 'leaderboardList' : 'gameLeaderboardList';
+            renderLeaderboard(containerId, difficulty);
+        }
+
+        // Fungsi untuk merender leaderboard berdasarkan kesulitan
+        function renderLeaderboard(containerId = 'leaderboardList', difficultyFilter = null) {
+            const leaderboardList = document.getElementById(containerId);
+            if (!leaderboardList) {
+                console.warn(`⚠️ Container ${containerId} not found`);
+                return;
+            }
+            
+            leaderboardList.innerHTML = '';
+
+            let leaderboard = loadLeaderboard();
+            
+            // Filter berdasarkan kesulitan jika ditentukan
+            if (difficultyFilter) {
+                leaderboard = leaderboard.filter(score => score.difficulty === difficultyFilter);
+            }
+
+            if (leaderboard.length === 0) {
+                const noEntry = document.createElement('li');
+                const difficultyText = difficultyFilter ? ` untuk tingkat ${difficultyFilter}` : '';
+                noEntry.innerHTML = `<div style="text-align: center; padding: 20px; font-style: italic; color: #718096;">Belum ada skor${difficultyText}. Mainkan game untuk mencatat waktu!</div>`;
+                leaderboardList.appendChild(noEntry);
+                return;
+            }
+
+            leaderboard.forEach((score, index) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'leaderboard-item';
+                
+                const minutes = Math.floor(score.time / 60);
+                const seconds = score.time % 60;
+                const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                // Tentukan emoji untuk ranking
+                let rankEmoji = '';
+                if (index === 0) rankEmoji = '🥇';
+                else if (index === 1) rankEmoji = '🥈';
+                else if (index === 2) rankEmoji = '🥉';
+                else rankEmoji = `${index + 1}.`;
+
+                listItem.innerHTML = `
+                    <div class="rank">${rankEmoji}</div>
+                    <div class="player-info">
+                        <div>${score.name}</div>
+                        <div class="details">${score.category} | ${score.date}</div>
+                    </div>
+                    <div class="time">${formattedTime}</div>
+                `;
+                
+                leaderboardList.appendChild(listItem);
+            });
+        }
+
+        class WordSearchGame {
+            constructor(category, difficulty) {
+                this.gridSize = 16;
+                const levelData = gameData[category][difficulty];
+                this.words = this.shuffleArray(levelData.words); 
+                this.timeLimit = levelData.timeLimit;
+                this.remainingTime = this.timeLimit;
+                
+                this.grid = [];
+                this.wordPositions = {};
+                this.foundWords = new Set();
+                this.selectedCells = [];
+                this.isSelecting = false;
+                this.startTime = null;
+                this.timerInterval = null;
+                this.hintCount = 0;
+                
+                this.category = category;
+                this.difficulty = difficulty;
+                
+                this.initGame();
+            }
+
+            initGame() {
+                this.createGrid();
+                this.placeWords();
+                this.fillEmptyCells();
+                this.renderGrid();
+                this.renderWordList();
+                this.startTimer();
+                this.attachEventListeners();
+                this.startTime = new Date().getTime();
+            }
+
+            createGrid() {
+                this.grid = Array(this.gridSize).fill().map(() => 
+                    Array(this.gridSize).fill('')
+                );
+            }
+
+            placeWords() {
+                this.wordPositions = {};
+                this.successfullyPlacedWords = [];
+                
+                const directions = [
+                    [0, 1], [1, 0], [1, 1], [-1, 1],
+                    [0, -1], [-1, 0], [-1, -1], [1, -1]
+                ];
+
+                this.words.forEach((word, index) => {
+                    let placed = false;
+                    let attempts = 0;
+                    
+                    while (!placed && attempts < 200) {
+                        const direction = directions[Math.floor(Math.random() * directions.length)];
+                        const startRow = Math.floor(Math.random() * this.gridSize);
+                        const startCol = Math.floor(Math.random() * this.gridSize);
+                        
+                        if (this.canPlaceWord(word, startRow, startCol, direction)) {
+                            this.placeWord(word, startRow, startCol, direction);
+                            this.successfullyPlacedWords.push(word);
+                            placed = true;
+                        }
+                        attempts++;
+                    }
+                });
+                
+                this.words = this.successfullyPlacedWords;
+            }
+
+            canPlaceWord(word, row, col, direction) {
+                const [dRow, dCol] = direction;
+                
+                for (let i = 0; i < word.length; i++) {
+                    const newRow = row + i * dRow;
+                    const newCol = col + i * dCol;
+                    
+                    if (newRow < 0 || newRow >= this.gridSize || 
+                        newCol < 0 || newCol >= this.gridSize) {
+                        return false;
+                    }
+                    
+                    if (this.grid[newRow][newCol] !== '' && 
+                        this.grid[newRow][newCol] !== word[i]) {
+                        return false;
+                    }
+                }
+                
+                return true;
+            }
+
+            placeWord(word, row, col, direction) {
+                const [dRow, dCol] = direction;
+                const positions = [];
+                
+                for (let i = 0; i < word.length; i++) {
+                    const newRow = row + i * dRow;
+                    const newCol = col + i * dCol;
+                    this.grid[newRow][newCol] = word[i];
+                    positions.push([newRow, newCol]);
+                }
+                
+                this.wordPositions[word] = positions;
+            }
+
+            fillEmptyCells() {
+                const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                
+                for (let row = 0; row < this.gridSize; row++) {
+                    for (let col = 0; col < this.gridSize; col++) {
+                        if (this.grid[row][col] === '') {
+                            this.grid[row][col] = letters[Math.floor(Math.random() * letters.length)];
+                        }
+                    }
+                }
+            }
+
+            renderGrid() {
+                const gridElement = document.getElementById('wordGrid');
+                gridElement.innerHTML = '';
+                
+                for (let row = 0; row < this.gridSize; row++) {
+                    for (let col = 0; col < this.gridSize; col++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'grid-cell';
+                        cell.textContent = this.grid[row][col];
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                        gridElement.appendChild(cell);
+                    }
+                }
+            }
+
+            renderWordList() {
+                const listElement = document.getElementById('wordList');
+                listElement.innerHTML = '';
+                
+                this.words.forEach(word => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'word-item';
+                    listItem.textContent = word;
+                    listItem.id = `word-${word}`;
+                    listElement.appendChild(listItem);
+                });
+                
+                document.getElementById('totalWords').textContent = this.words.length;
+            }
+
+            attachEventListeners() {
+                const grid = document.getElementById('wordGrid');
+                
+                grid.addEventListener('mousedown', (e) => {
+                    if (e.target.classList.contains('grid-cell')) {
+                        this.startSelection(e.target);
+                    }
+                });
+                
+                grid.addEventListener('mouseover', (e) => {
+                    if (e.target.classList.contains('grid-cell') && this.isSelecting) {
+                        this.updateSelection(e.target);
+                    }
+                });
+                
+                grid.addEventListener('mouseup', () => {
+                    if (this.isSelecting) {
+                        this.endSelection();
+                    }
+                });
+                
+                document.addEventListener('mouseup', () => {
+                    if (this.isSelecting) {
+                        this.endSelection();
+                    }
+                });
+            }
+
+            startSelection(cell) {
+                this.isSelecting = true;
+                this.selectedCells = [cell];
+                this.updateCellStyles();
+            }
+
+            updateSelection(cell) {
+                if (!this.isSelecting) return;
+                
+                const firstCell = this.selectedCells[0];
+                const row1 = parseInt(firstCell.dataset.row);
+                const col1 = parseInt(firstCell.dataset.col);
+                const row2 = parseInt(cell.dataset.row);
+                const col2 = parseInt(cell.dataset.col);
+                
+                this.selectedCells = this.getCellsInLine(row1, col1, row2, col2);
+                this.updateCellStyles();
+            }
+
+            getCellsInLine(row1, col1, row2, col2) {
+                const cells = [];
+                const dRow = row2 - row1;
+                const dCol = col2 - col1;
+                
+                if (dRow !== 0 && dCol !== 0 && Math.abs(dRow) !== Math.abs(dCol)) {
+                    return [document.querySelector(`[data-row="${row1}"][data-col="${col1}"]`)];
+                }
+                
+                const steps = Math.max(Math.abs(dRow), Math.abs(dCol));
+                const stepRow = steps === 0 ? 0 : dRow / steps;
+                const stepCol = steps === 0 ? 0 : dCol / steps;
+                
+                for (let i = 0; i <= steps; i++) {
+                    const row = row1 + Math.round(i * stepRow);
+                    const col = col1 + Math.round(i * stepCol);
+                    const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                    if (cell) cells.push(cell);
+                }
+                
+                return cells;
+            }
+
+            updateCellStyles() {
+                document.querySelectorAll('.grid-cell.selected').forEach(cell => {
+                    cell.classList.remove('selected');
+                });
+                
+                this.selectedCells.forEach(cell => {
+                    if (cell) cell.classList.add('selected');
+                });
+            }
+
+            endSelection() {
+                this.isSelecting = false;
+                const selectedWord = this.getSelectedWord();
+                const selectedWordReverse = this.getSelectedWordReverse();
+                
+                let foundWord = null;
+                if (this.words.includes(selectedWord) && !this.foundWords.has(selectedWord)) {
+                    foundWord = selectedWord;
+                } else if (this.words.includes(selectedWordReverse) && !this.foundWords.has(selectedWordReverse)) {
+                    foundWord = selectedWordReverse;
+                }
+                
+                if (foundWord) {
+                    this.markWordAsFound(foundWord, this.selectedCells);
+                }
+                
+                this.clearSelection();
+            }
+
+            getSelectedWord() {
+                return this.selectedCells.map(cell => cell.textContent).join('');
+            }
+
+            getSelectedWordReverse() {
+                return this.selectedCells.map(cell => cell.textContent).reverse().join('');
+            }
+
+            markWordAsFound(word, selectedCells) {
+                this.foundWords.add(word);
+                
+                selectedCells.forEach(cell => {
+                    if (cell) {
+                        cell.classList.add('found');
+                        cell.setAttribute('data-found-word', word);
+                    }
+                });
+                
+                const wordItem = document.getElementById(`word-${word}`);
+                if (wordItem) {
+                    wordItem.classList.add('found');
+                }
+                
+                document.getElementById('wordsFound').textContent = this.foundWords.size;
+                
+                if (this.foundWords.size === this.words.length) {
+                    this.showVictory();
+                }
+            }
+
+            clearSelection() {
+                document.querySelectorAll('.grid-cell.selected').forEach(cell => {
+                    cell.classList.remove('selected');
+                });
+                this.selectedCells = [];
+            }
+
+            startTimer() {
+                clearInterval(this.timerInterval);
+                this.remainingTime = this.timeLimit;
+                this.updateTimerDisplay();
+                
+                this.timerInterval = setInterval(() => {
+                    this.remainingTime--;
+                    this.updateTimerDisplay();
+
+                    if (this.remainingTime <= 0) {
+                        this.gameOver();
+                    }
+                }, 1000);
+            }
+
+            updateTimerDisplay() {
+                const minutes = Math.floor(this.remainingTime / 60);
+                const seconds = this.remainingTime % 60;
+                document.getElementById('timer').textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+
+            showVictory() {
+                clearInterval(this.timerInterval);
+                document.getElementById('gameOverMessage').style.display = 'none';
+                
+                const endTime = new Date().getTime();
+                const totalTimeTakenMs = endTime - this.startTime;
+                const totalTimeTakenSeconds = Math.floor(totalTimeTakenMs / 1000);
+
+                const minutes = Math.floor(totalTimeTakenSeconds / 60);
+                const seconds = totalTimeTakenSeconds % 60;
+                
+                document.getElementById('finalTime').textContent = 
+                    `Waktu: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                document.getElementById('victoryMessage').style.display = 'block';
+                document.getElementById('wordGrid').style.pointerEvents = 'none';
+                
+                // Simpan skor ke leaderboard
+                this.saveScore(totalTimeTakenSeconds);
+            }
+
+            saveScore(timeTaken) {
+                const playerNameInput = document.getElementById('playerName');
+                let playerName = playerNameInput.value.trim();
+                if (!playerName) {
+                    playerName = "Pemain Anonim";
+                }
+
+                const success = addScore(playerName, timeTaken, this.category, this.difficulty);
+                
+                if (success) {
+                    console.log('🎉 Score saved successfully!');
+                    // Perbarui leaderboard di halaman game sesuai kesulitan yang sedang ditampilkan
+                    const currentDifficulty = activeDifficultyTabs.game;
+                    renderLeaderboard('gameLeaderboardList', currentDifficulty);
+                } else {
+                    console.error('❌ Failed to save score');
+                    alert('Gagal menyimpan skor. Coba lagi nanti.');
+                }
+            }
+
+            gameOver() {
+                clearInterval(this.timerInterval);
+                document.getElementById('victoryMessage').style.display = 'none';
+                
+                const missedWords = this.words.filter(word => !this.foundWords.has(word));
+                
+                missedWords.forEach((word) => {
+                    const positions = this.wordPositions[word];
+                    
+                    if (positions && positions.length > 0) {
+                        positions.forEach(([row, col]) => {
+                            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                            
+                            if (cell) {
+                                const hasFoundClass = cell.classList.contains('found');
+                                
+                                if (hasFoundClass) {
+                                    cell.style.background = 'linear-gradient(45deg, #f59e0b, #d97706)';
+                                    cell.style.color = 'white';
+                                    cell.style.borderColor = '#b45309';
+                                } else {
+                                    cell.classList.add('missed');
+                                    cell.style.background = 'linear-gradient(45deg, #e53e3e, #c53030)';
+                                    cell.style.color = 'white';
+                                    cell.style.borderColor = '#9b2c2c';
+                                }
+                            }
+                        });
+                    }
+                    
+                    const wordItem = document.getElementById(`word-${word}`);
+                    if (wordItem && !wordItem.classList.contains('found')) {
+                        wordItem.classList.add('missed');
+                        wordItem.style.background = 'linear-gradient(45deg, #e53e3e, #c53030)';
+                        wordItem.style.color = 'white';
+                        wordItem.style.borderColor = '#9b2c2c';
+                    }
+                });
+                
+                document.getElementById('gameOverMessage').style.display = 'block';
+                document.getElementById('wordGrid').style.pointerEvents = 'none';
+            }
+
+            showAllMissedWords() {
+                const missedWords = this.words.filter(word => !this.foundWords.has(word));
+                
+                missedWords.forEach((word, index) => {
+                    const positions = this.wordPositions[word];
+                    
+                    if (positions && positions.length > 0) {
+                        setTimeout(() => {
+                            positions.forEach(([row, col]) => {
+                                const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                                if (cell && !cell.classList.contains('found')) {
+                                    cell.classList.add('missed');
+                                    cell.style.background = 'linear-gradient(45deg, #e53e3e, #c53030)';
+                                    cell.style.color = 'white';
+                                    cell.style.borderColor = '#9b2c2c';
+                                }
+                            });
+                            
+                            const wordItem = document.getElementById(`word-${word}`);
+                            if (wordItem && !wordItem.classList.contains('found')) {
+                                wordItem.classList.add('missed');
+                                wordItem.style.background = 'linear-gradient(45deg, #e53e3e, #c53030)';
+                                wordItem.style.color = 'white';
+                                wordItem.style.borderColor = '#9b2c2c';
+                            }
+                        }, index * 150);
+                    }
+                });
+                
+                document.getElementById('wordGrid').style.pointerEvents = 'none';
+            }
+
+            giveHint() {
+                const unFoundWords = this.words.filter(word => !this.foundWords.has(word));
+                if (unFoundWords.length === 0) return;
+                
+                const randomWord = unFoundWords[Math.floor(Math.random() * unFoundWords.length)];
+                const positions = this.wordPositions[randomWord];
+                
+                if (positions && positions.length > 0) {
+                    const [row, col] = positions[0];
+                    const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                    if (cell && !cell.classList.contains('found')) {
+                        cell.style.background = 'linear-gradient(45deg, #fbbf24, #f59e0b)';
+                        cell.style.animation = 'pulse 1s ease 3';
+                        setTimeout(() => {
+                            if (!cell.classList.contains('found')) {
+                                cell.style.background = '';
+                                cell.style.animation = '';
+                            }
+                        }, 3000);
+                    }
+                }
+                
+                this.hintCount++;
+            }
+
+            newGame() {
+                clearInterval(this.timerInterval);
+                this.foundWords.clear();
+                this.hintCount = 0;
+                document.getElementById('victoryMessage').style.display = 'none';
+                document.getElementById('gameOverMessage').style.display = 'none';
+                document.getElementById('wordsFound').textContent = '0';
+                document.getElementById('wordGrid').style.pointerEvents = 'auto';
+                
+                document.querySelectorAll('.grid-cell').forEach(cell => {
+                    cell.classList.remove('missed', 'found', 'selected');
+                    cell.style.background = '';
+                    cell.style.color = '';
+                    cell.style.borderColor = '';
+                    cell.removeAttribute('data-found-word');
+                });
+                
+                document.querySelectorAll('.word-item').forEach(item => {
+                    item.classList.remove('missed', 'found');
+                    item.style.background = '';
+                    item.style.color = '';
+                    item.style.borderColor = '';
+                });
+                
+                const selectedCategory = document.getElementById('categorySelect').value;
+                const selectedDifficulty = document.getElementById('difficultySelect').value;
+
+                game = new WordSearchGame(selectedCategory, selectedDifficulty);
+            }
+
+            shuffleArray(array) {
+                const shuffled = [...array];
+                for (let i = shuffled.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                }
+                return shuffled;
+            }
+        }
+
+        function populateOptions() {
+            const categorySelect = document.getElementById('categorySelect');
+            const difficultySelect = document.getElementById('difficultySelect');
+
+            for (const category in gameData) {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categorySelect.appendChild(option);
+            }
+
+            function updateDifficultyOptions() {
+                difficultySelect.innerHTML = '';
+                const selectedCategory = categorySelect.value;
+                if (selectedCategory && gameData[selectedCategory]) {
+                    for (const difficulty in gameData[selectedCategory]) {
+                        const option = document.createElement('option');
+                        option.value = difficulty;
+                        option.textContent = difficulty;
+                        difficultySelect.appendChild(option);
+                    }
+                }
+            }
+
+            categorySelect.addEventListener('change', updateDifficultyOptions);
+            updateDifficultyOptions();
+        }
+
+        let game;
+        
+        function newGame() {
+            game.newGame();
+        }
+        
+        function giveHint() {
+            if (game) {
+                game.giveHint();
+            }
+        }
+        
+        function showAllWords() {
+            if (game) {
+                game.showAllMissedWords();
+            }
+        }
+        
+        function startGame() {
+            const playerName = document.getElementById('playerName').value.trim();
+            if (!playerName) {
+                alert('Silakan masukkan nama Anda terlebih dahulu');
+                return;
+            }
+            
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('gamePage').style.display = 'block';
+            
+            populateOptions();
+            const initialCategory = document.getElementById('categorySelect').value;
+            const initialDifficulty = document.getElementById('difficultySelect').value;
+            game = new WordSearchGame(initialCategory, initialDifficulty);
+            
+            // Set tab game sesuai kesulitan yang dipilih dan render leaderboard
+            activeDifficultyTabs.game = initialDifficulty;
+            switchDifficultyTab('game', initialDifficulty);
+        }
+
+        function backToDashboard() {
+            document.getElementById('gamePage').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            
+            // Render leaderboard dashboard sesuai tab yang aktif
+            const currentDifficulty = activeDifficultyTabs.dashboard;
+            renderLeaderboard('leaderboardList', currentDifficulty);
+            
+            if (game) {
+                clearInterval(game.timerInterval);
+            }
+        }
+
+        // Inisialisasi saat halaman dimuat
+        window.addEventListener('load', () => {
+            console.log('🚀 Game loaded, initializing leaderboard...');
+            renderLeaderboard('leaderboardList');
+            
+            // Test localStorage availability
+            try {
+                localStorage.setItem('test', 'test');
+                localStorage.removeItem('test');
+                console.log('✅ localStorage is available');
+            } catch (error) {
+                console.warn('⚠️ localStorage is not available:', error);
+                alert('Peringatan: Papan peringkat mungkin tidak dapat tersimpan karena browser tidak mendukung penyimpanan lokal.');
+            }
+        });
+
+        // Auto-save ketika halaman ditutup (backup)
+        window.addEventListener('beforeunload', () => {
+            console.log('💾 Page unloading, data should already be saved');
+        });
+    </script>
+</body>
+</html>
